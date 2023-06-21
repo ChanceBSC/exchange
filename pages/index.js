@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
 import styles from "../styles/Home.module.css";
 import {
+  useDisconnect,
+  useNetworkMismatch,
+  useSwitchChain,
+  useNetwork,
   ConnectWallet,
   useAddress,
-  useWallet,
   useContract,
   useTokenBalance,
   useContractRead,
@@ -11,6 +14,8 @@ import {
 } from "@thirdweb-dev/react";
 import { ethers } from "ethers";
 import toast from "react-hot-toast";
+import { Goerli, BinanceTestnet, Binance } from "@thirdweb-dev/chains";
+
 
 // check use chance balance
 // check use betToken balance
@@ -19,8 +24,14 @@ import toast from "react-hot-toast";
 
 export default function Home() {
   const [depositAmount, setDepositAmount] = useState();
-  console.log("🚀 ~ file: index.js:22 ~ Home ~ depositAmount:", depositAmount)
+  console.log("🚀 ~ file: index.js:22 ~ Home ~ depositAmount:", depositAmount);
   const [cashOutAmount, setCashOutAmount] = useState();
+
+  const disconnect = useDisconnect();
+  const isMismatched = useNetworkMismatch();
+
+  const switchChain = useSwitchChain();
+  const [, switchNetwork] = useNetwork();
 
   const address = useAddress();
   console.log("🚀 ~ file: index.js:23 ~ Home ~ address:", address);
@@ -29,7 +40,7 @@ export default function Home() {
     contract: exchangeContract,
     isLoading,
     error,
-  } = useContract("0x895d9064081c15eF4A92eD93B96c2AaB421D2e8A");
+  } = useContract(process.env.NEXT_PUBLIC_EXCHANGE_CONTRACT_ADDRESS);
   console.log(
     "🚀 ~ file: index.js:25 ~ Home ~ exchangeContract:",
     exchangeContract
@@ -39,7 +50,7 @@ export default function Home() {
     contract: chanceContract,
     isLoading: chanceIsLoading,
     error: chanceError,
-  } = useContract("0x9D45E3a41F714f655846AA145b27676e5258C113", "token");
+  } = useContract(process.env.NEXT_PUBLIC_MAIN_TOKEN_CONTRACT_ADDRESS, "token");
   console.log(
     "🚀 ~ file: index.js:31 ~ Home ~ chanceContract:",
     chanceContract
@@ -49,7 +60,7 @@ export default function Home() {
     contract: betContract,
     isLoading: betIsLoading,
     error: betError,
-  } = useContract("0xc81DAb876618350bf299A152F0676A7fCB920e0b", "token");
+  } = useContract(process.env.NEXT_PUBLIC_TOKEN_CONTRACT_ADDRESS, "token");
   console.log("🚀 ~ file: index.js:39 ~ Home ~ betContract:", betContract);
 
   const { mutateAsync: depositChance, isLoading: depositIsLoading } =
@@ -68,7 +79,7 @@ export default function Home() {
 
   const { data: exchangeChanceBalance } = useTokenBalance(
     chanceContract,
-    "0x895d9064081c15eF4A92eD93B96c2AaB421D2e8A"
+    process.env.NEXT_PUBLIC_EXCHANGE_CONTRACT_ADDRESS
   );
   console.log(
     "🚀 ~ file: index.js:62 ~ Home ~ exchangeChanceBalance:",
@@ -77,7 +88,7 @@ export default function Home() {
 
   const { data: exchangeBetBalance } = useTokenBalance(
     betContract,
-    "0x895d9064081c15eF4A92eD93B96c2AaB421D2e8A"
+    process.env.NEXT_PUBLIC_EXCHANGE_CONTRACT_ADDRESS
   );
   console.log(
     "🚀 ~ file: index.js:68 ~ Home ~ exchangeBetBalance:",
@@ -158,9 +169,17 @@ export default function Home() {
     }
   };
 
+  async function networkCheck() {
+    if (isMismatched) {
+      switchChain(Binance.chainId);
+    }
+  }
+
   useEffect(() => {
-  
-  }, [address])
+    networkCheck();
+  }, [address, exchangeContract]);
+
+  useEffect(() => {}, [address]);
 
   return (
     <div className={styles.container}>
@@ -240,13 +259,17 @@ export default function Home() {
                   Number(betTokenBalance?.displayValue).toFixed(2) == "0.00" ||
                   cashOutIsLoading ||
                   betTokenBalance?.displayValue <
-                  exchangeChanceBalance?.displayValue ||
-                  exchangeChanceBalance?.displayValue < betTokenBalance?.displayValue
+                    exchangeChanceBalance?.displayValue ||
+                  exchangeChanceBalance?.displayValue <
+                    betTokenBalance?.displayValue
                 }
                 onClick={cashOutToken}>
                 {betTokenBalance?.displayValue <
                 exchangeChanceBalance?.displayValue ? (
-                  <>Not enough {exchangeChanceBalance?.symbol} match your request</>
+                  <>
+                    Not enough {exchangeChanceBalance?.symbol} match your
+                    request
+                  </>
                 ) : (
                   <>
                     {betTokenBalance?.displayValue == "0.0"
