@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import styles from "../styles/Home.module.css";
 import {
   useDisconnect,
   useNetworkMismatch,
@@ -211,11 +210,11 @@ export default function Home() {
     networkCheck();
   }, [address, exchangeContract]);
 
-  useEffect(() => {}, [address]);
+  useEffect(() => { }, [address]);
 
   return (
-    <div className={styles.container}>
-      <main className={styles.main}>
+    <main className="min-h-screen py-8 px-6 md:px-12 lg:px-16">
+      <div className="flex justify-end">
         <ConnectWallet />
         {address ? (
           <div>
@@ -238,7 +237,9 @@ export default function Home() {
                 type="number"
                 disabled={
                   Number(chanceBalance?.displayValue).toFixed(2) == "0.0" ||
-                  depositIsLoading
+                  depositIsLoading ||
+                  exchangeBetBalance?.displayValue <=
+                    chanceBalance?.displayValue
                 }
                 min={1}
                 max={chanceBalance?.displayValue}
@@ -249,19 +250,21 @@ export default function Home() {
               <button
                 disabled={
                   Number(chanceBalance?.displayValue).toFixed(2) == "0.0" ||
-                  depositIsLoading
+                  depositIsLoading ||
+                  exchangeBetBalance?.displayValue <=
+                    chanceBalance?.displayValue
                 }
                 onClick={depositToken}>
-                {/* {exchangeBetBalance?.displayValue <=
+                {exchangeBetBalance?.displayValue <=
                 chanceBalance?.displayValue ? (
                   <>No {exchangeBetBalance?.symbol} to swap to</>
                 ) : (
-                  <> */}
-                {chanceBalance?.displayValue == "0.0"
-                  ? `you don't have ${chanceBalance?.symbol} to swap`
-                  : `swap ${chanceBalance?.symbol} to ${betTokenBalance?.symbol}`}
-                {/* </>
-                )} */}
+                  <>
+                    {chanceBalance?.displayValue == "0.0"
+                      ? `you don't have ${chanceBalance?.symbol} to swap`
+                      : `swap ${chanceBalance?.symbol} to ${betTokenBalance?.symbol}`}
+                  </>
+                )}
               </button>
               <br />
               <br />
@@ -272,7 +275,9 @@ export default function Home() {
                 type="number"
                 disabled={
                   Number(betTokenBalance?.displayValue).toFixed(2) == "0.00" ||
-                  cashOutIsLoading
+                  cashOutIsLoading ||
+                  betTokenBalance?.displayValue <
+                    exchangeChanceBalance?.displayValue
                 }
                 min={1}
                 max={betTokenBalance?.displayValue}
@@ -283,22 +288,26 @@ export default function Home() {
               <button
                 disabled={
                   Number(betTokenBalance?.displayValue).toFixed(2) == "0.00" ||
-                  cashOutIsLoading
+                  cashOutIsLoading ||
+                  betTokenBalance?.displayValue <
+                    exchangeChanceBalance?.displayValue ||
+                  exchangeChanceBalance?.displayValue <
+                    betTokenBalance?.displayValue
                 }
                 onClick={cashOutToken}>
-                {/* {betTokenBalance?.displayValue <
+                {betTokenBalance?.displayValue <
                 exchangeChanceBalance?.displayValue ? (
                   <>
                     Not enough {exchangeChanceBalance?.symbol} match your
                     request
                   </>
                 ) : (
-                  <> */}
-                {betTokenBalance?.displayValue == "0.0"
-                  ? `you don't have ${betTokenBalance?.symbol} to swap`
-                  : `swap ${betTokenBalance?.symbol} to ${chanceBalance?.symbol}`}
-                {/* </>
-                )} */}
+                  <>
+                    {betTokenBalance?.displayValue == "0.0"
+                      ? `you don't have ${betTokenBalance?.symbol} to swap`
+                      : `swap ${betTokenBalance?.symbol} to ${chanceBalance?.symbol}`}
+                  </>
+                )}
               </button>
             </div>
             <hr></hr>
