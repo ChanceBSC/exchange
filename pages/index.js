@@ -210,124 +210,161 @@ export default function Home() {
     networkCheck();
   }, [address, exchangeContract]);
 
-  useEffect(() => { }, [address]);
+  useEffect(() => {}, [address]);
 
   return (
     <main className="min-h-screen py-8 px-6 md:px-12 lg:px-16">
       <div className="flex justify-end">
         <ConnectWallet />
-        {address ? (
-          <div>
-            <div>
-              <p>chance balance</p>
-              {chanceBalance &&
-                Number(chanceBalance?.displayValue).toFixed(2)}{" "}
-              {""}
-              {chanceBalance && chanceBalance?.symbol}
-              <p>betToken contract</p>
-              {betTokenBalance &&
-                Number(betTokenBalance?.displayValue).toFixed(2)}{" "}
-              {""}
-              {betTokenBalance && betTokenBalance?.symbol}
-            </div>
-            <hr></hr>
-            <div>
+      </div>
+
+      {isLoading || betIsLoading || chanceIsLoading ? (
+        <>Loading...</>
+      ) : (
+        <>
+          {address ? (
+            <div className="bg-gray-900 px-6 rounded-lg flex flex-col mt-8 pb-8">
+              <div className="text-yellow-500 mt-6">Chance Balance</div>
+              <div className="mt-1 flex">
+                <div>
+                  {" "}
+                  {chanceBalance &&
+                    Number(chanceBalance?.displayValue).toFixed(2)}
+                </div>
+                <div className="text-yellow-300 ml-2">
+                  {chanceBalance && chanceBalance?.symbol}
+                </div>
+              </div>
+              <div className="text-yellow-500 mt-2">BetToken Contract</div>
+              <div className="mt-1 flex">
+                <div>
+                  {" "}
+                  {betTokenBalance &&
+                    Number(betTokenBalance?.displayValue).toFixed(2)}{" "}
+                </div>
+                <div className="text-yellow-300 ml-2">
+                  {" "}
+                  {betTokenBalance && betTokenBalance?.symbol}
+                </div>
+              </div>
               {/* deposit chance to get betToken */}
-              <input
-                type="number"
-                disabled={
-                  Number(chanceBalance?.displayValue).toFixed(2) == "0.0" ||
-                  depositIsLoading ||
-                  exchangeBetBalance?.displayValue <=
-                    chanceBalance?.displayValue
-                }
-                min={1}
-                max={chanceBalance?.displayValue}
-                value={depositAmount}
-                onChange={handleDeposit}
-              />
-              <br />
-              <button
-                disabled={
-                  Number(chanceBalance?.displayValue).toFixed(2) == "0.0" ||
-                  depositIsLoading ||
-                  exchangeBetBalance?.displayValue <=
-                    chanceBalance?.displayValue
-                }
-                onClick={depositToken}>
-                {exchangeBetBalance?.displayValue <=
-                chanceBalance?.displayValue ? (
-                  <>No {exchangeBetBalance?.symbol} to swap to</>
-                ) : (
-                  <>
-                    {chanceBalance?.displayValue == "0.0"
-                      ? `you don't have ${chanceBalance?.symbol} to swap`
-                      : `swap ${chanceBalance?.symbol} to ${betTokenBalance?.symbol}`}
-                  </>
-                )}
-              </button>
-              <br />
-              <br />
+              <div className="flex flex-col mt-2">
+                <input
+                  className="outline-none rounded-md text-black px-2 py-1 w-64"
+                  type="number"
+                  disabled={
+                    Number(chanceBalance?.displayValue).toFixed(2) == "0.0" ||
+                    depositIsLoading ||
+                    exchangeBetBalance?.displayValue <=
+                      chanceBalance?.displayValue
+                  }
+                  min={1}
+                  max={chanceBalance?.displayValue}
+                  value={depositAmount}
+                  onChange={handleDeposit}
+                />
+
+                <button
+                  className="my-4 bg-yellow-500 py-1.5 w-fit px-6 rounded-2xl "
+                  disabled={
+                    Number(chanceBalance?.displayValue).toFixed(2) == "0.0" ||
+                    depositIsLoading ||
+                    exchangeBetBalance?.displayValue <=
+                      chanceBalance?.displayValue
+                  }
+                  onClick={depositToken}>
+                  {exchangeBetBalance?.displayValue <=
+                  chanceBalance?.displayValue ? (
+                    <>No {exchangeBetBalance?.symbol} to swap to</>
+                  ) : (
+                    <>
+                      {chanceBalance?.displayValue == "0.0"
+                        ? `You don't have ${chanceBalance?.symbol} to Swap`
+                        : `Swap ${chanceBalance?.symbol} to ${betTokenBalance?.symbol}`}
+                    </>
+                  )}
+                </button>
+              </div>
+
               {/* withdraw chance by depositing betToken */}
-              <label>swapping from bet to chance</label>
-              <br />
-              <input
-                type="number"
-                disabled={
-                  Number(betTokenBalance?.displayValue).toFixed(2) == "0.00" ||
-                  cashOutIsLoading ||
-                  betTokenBalance?.displayValue <
-                    exchangeChanceBalance?.displayValue
-                }
-                min={1}
-                max={betTokenBalance?.displayValue}
-                value={cashOutAmount}
-                onChange={handleCashOut}
-              />
-              <br />
-              <button
-                disabled={
-                  Number(betTokenBalance?.displayValue).toFixed(2) == "0.00" ||
-                  cashOutIsLoading ||
-                  betTokenBalance?.displayValue <
-                    exchangeChanceBalance?.displayValue ||
-                  exchangeChanceBalance?.displayValue <
-                    betTokenBalance?.displayValue
-                }
-                onClick={cashOutToken}>
-                {betTokenBalance?.displayValue <
-                exchangeChanceBalance?.displayValue ? (
-                  <>
-                    Not enough {exchangeChanceBalance?.symbol} match your
-                    request
-                  </>
-                ) : (
-                  <>
-                    {betTokenBalance?.displayValue == "0.0"
-                      ? `you don't have ${betTokenBalance?.symbol} to swap`
-                      : `swap ${betTokenBalance?.symbol} to ${chanceBalance?.symbol}`}
-                  </>
-                )}
-              </button>
+              <div className="flex flex-col items-start">
+                <div className=" text-yellow-500">
+                  Swapping from Bet to Chance
+                </div>
+                <input
+                  className="outline-none rounded-md text-black px-2 py-1 w-64 mt-2"
+                  type="number"
+                  disabled={
+                    Number(betTokenBalance?.displayValue).toFixed(2) ==
+                      "0.00" ||
+                    cashOutIsLoading ||
+                    betTokenBalance?.displayValue <
+                      exchangeChanceBalance?.displayValue
+                  }
+                  min={1}
+                  max={betTokenBalance?.displayValue}
+                  value={cashOutAmount}
+                  onChange={handleCashOut}
+                />
+
+                <button
+                  className=" my-4 bg-yellow-500 py-1.5 w-fit px-6 rounded-2xl disabled:opacity-50"
+                  disabled={
+                    Number(betTokenBalance?.displayValue).toFixed(2) ==
+                      "0.00" ||
+                    cashOutIsLoading ||
+                    betTokenBalance?.displayValue <
+                      exchangeChanceBalance?.displayValue ||
+                    exchangeChanceBalance?.displayValue <
+                      betTokenBalance?.displayValue
+                  }
+                  onClick={cashOutToken}>
+                  {betTokenBalance?.displayValue <
+                  exchangeChanceBalance?.displayValue ? (
+                    <>
+                      Not enough {exchangeChanceBalance?.symbol} to match your
+                      request
+                    </>
+                  ) : (
+                    <>
+                      {betTokenBalance?.displayValue == "0.0"
+                        ? `you don't have ${betTokenBalance?.symbol} to swap`
+                        : `swap ${betTokenBalance?.symbol} to ${chanceBalance?.symbol}`}
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <div className="text-yellow-500">Exchange CHANCE Balance</div>
+              <div className="flex mt-1 ">
+                <div>
+                  {exchangeChanceBalance &&
+                    Number(exchangeChanceBalance?.displayValue).toFixed(2)}
+                </div>
+                <div className="text-yellow-300 ml-2">
+                  {exchangeChanceBalance && exchangeChanceBalance?.symbol}
+                </div>
+              </div>
+              <div className="text-yellow-500 mt-2">
+                Exchange BetToken Balance
+              </div>
+              <div className="flex mt-1">
+                <div>
+                  {" "}
+                  {exchangeBetBalance &&
+                    Number(exchangeBetBalance?.displayValue).toFixed(2)}{" "}
+                </div>
+                <div className="text-yellow-300 ml-2">
+                  {" "}
+                  {exchangeBetBalance && exchangeBetBalance?.symbol}
+                </div>
+              </div>
             </div>
-            <hr></hr>
-            <div>
-              <p>exchange chance balance</p>
-              {exchangeChanceBalance &&
-                Number(exchangeChanceBalance?.displayValue).toFixed(2)}{" "}
-              {""}
-              {exchangeChanceBalance && exchangeChanceBalance?.symbol}
-              <p>exchange betToken balance </p>
-              {exchangeBetBalance &&
-                Number(exchangeBetBalance?.displayValue).toFixed(2)}{" "}
-              {""}
-              {exchangeBetBalance && exchangeBetBalance?.symbol}
-            </div>
-          </div>
-        ) : (
-          <>Please Connect Your Wallet</>
-        )}
-      </main>
-    </div>
+          ) : (
+            <>Please Connect Your Wallet</>
+          )}
+        </>
+      )}
+    </main>
   );
 }
