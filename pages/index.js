@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import {
-  
   useDisconnect,
   useNetworkMismatch,
   useSwitchChain,
@@ -135,10 +134,10 @@ export default function Home() {
             try {
               const parsedAmount = ethers.utils.parseUnits(
                 depositAmount,
-                betTokenBalance?.decimals
+                chanceBalance?.decimals
               );
               const data = await depositChance({
-                args: [depositAmount],
+                args: [parsedAmount],
               });
               toast.success(
                 `${depositAmount} ${chanceBalance?.symbol} successfully exchanged for ${depositAmount} ${betTokenBalance?.symbol}`,
@@ -254,7 +253,7 @@ export default function Home() {
                 </div>
               </div>
               <div className="text-yellow-500 mt-2">
-                Your {betTokenBalance && betTokenBalance?.symbol} Contract
+                Your {betTokenBalance && betTokenBalance?.symbol} Balance
               </div>
               <div className="mt-1 flex">
                 <div>
@@ -313,7 +312,7 @@ export default function Home() {
               {/* withdraw chance by depositing betToken */}
               <div className="flex flex-col items-start">
                 <div className=" text-yellow-500">
-                  Swapping from Bet to Chance
+                  Swapping from {betTokenBalance?.symbol} to {chanceBalance?.symbolx}
                 </div>
                 <input
                   className="outline-none rounded-md text-black px-2 py-1 w-64 mt-2"
@@ -357,7 +356,7 @@ export default function Home() {
                 </button>
               </div>
 
-              <div className="text-yellow-500">
+              {/* <div className="text-yellow-500">
                 Exchange{" "}
                 {exchangeChanceBalance && exchangeChanceBalance?.symbol} Balance
               </div>
@@ -384,7 +383,7 @@ export default function Home() {
                   {" "}
                   {exchangeBetBalance && exchangeBetBalance?.symbol}
                 </div>
-              </div>
+              </div> */}
             </div>
           ) : (
             <>Please Connect Your Wallet</>
