@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import {
+  
   useDisconnect,
   useNetworkMismatch,
   useSwitchChain,
-  useNetwork,
   ConnectWallet,
   useAddress,
   useContract,
@@ -21,15 +21,14 @@ import { Goerli, BinanceTestnet, Binance } from "@thirdweb-dev/chains";
 // button and input to swap bettoken to $chance
 
 export default function Home() {
-  const [depositAmount, setDepositAmount] = useState();
+  const [depositAmount, setDepositAmount] = useState("");
   console.log("🚀 ~ file: index.js:22 ~ Home ~ depositAmount:", depositAmount);
-  const [cashOutAmount, setCashOutAmount] = useState();
+  const [cashOutAmount, setCashOutAmount] = useState("");
 
   const disconnect = useDisconnect();
   const isMismatched = useNetworkMismatch();
 
   const switchChain = useSwitchChain();
-  const [, switchNetwork] = useNetwork();
 
   const address = useAddress();
   console.log("🚀 ~ file: index.js:23 ~ Home ~ address:", address);
@@ -104,52 +103,69 @@ export default function Home() {
       `Exchanging to ${betTokenBalance?.symbol}`
     );
     try {
-      if (allow.toString() === "0" || allow.toString() < depositAmount) {
-        try {
-          const approveData = await approve({
-            args: [
-              process.env.NEXT_PUBLIC_EXCHANGE_CONTRACT_ADDRESS,
-              depositAmount,
-            ],
-          });
-          console.log(
-            "🚀 ~ file: page.js:182 ~ handleClick ~ approveData:",
-            approveData
-          );
-          toast.success(`approved successfully`, {
-            id: notification,
-          });
-        } catch (e) {
-          toast.error(`Whoops something went wrong approving`, {
-            id: notification,
-          });
-          console.log("🚀 ~ file: index.js:141 ~ allow.toString ~ e:", e);
-        }
+      if (exchangeBetBalance?.displayValue < depositAmount) {
+        alert(`Insufficient ${betTokenBalance?.symbol} to swap to`);
+        toast.error(`Insufficient ${betTokenBalance?.symbol} to swap to`, {
+          id: notification,
+        });
       } else {
         try {
-          const parsedAmount = ethers.utils.parseUnits(
-            depositAmount,
-            chanceBalance?.decimals
-          );
-          const data = await depositChance({
-            args: [parsedAmount.toString()],
-          });
-          toast.success(
-            `${depositAmount} ${chanceBalance?.symbol} successfully exchanged for ${depositAmount} ${betTokenBalance?.symbol}`,
-            {
-              id: notification,
+          if (allow.toString() === "0" || allow.toString() < depositAmount) {
+            try {
+              const approveData = await approve({
+                args: [
+                  process.env.NEXT_PUBLIC_EXCHANGE_CONTRACT_ADDRESS,
+                  depositAmount,
+                ],
+              });
+              console.log(
+                "🚀 ~ file: page.js:182 ~ handleClick ~ approveData:",
+                approveData
+              );
+              toast.success(`approved successfully`, {
+                id: notification,
+              });
+            } catch (e) {
+              toast.error(`Whoops something went wrong approving`, {
+                id: notification,
+              });
+              console.log("🚀 ~ file: index.js:141 ~ allow.toString ~ e:", e);
             }
-          );
-          console.info("contract call success", data);
-        } catch (err) {
-          toast.error(`Whoops ${err.reason}`, {
+          } else {
+            try {
+              const parsedAmount = ethers.utils.parseUnits(
+                depositAmount,
+                betTokenBalance?.decimals
+              );
+              const data = await depositChance({
+                args: [depositAmount],
+              });
+              toast.success(
+                `${depositAmount} ${chanceBalance?.symbol} successfully exchanged for ${depositAmount} ${betTokenBalance?.symbol}`,
+                {
+                  id: notification,
+                }
+              );
+              console.info("contract call success", data);
+            } catch (err) {
+              toast.error(`Whoops ${err.reason}`, {
+                id: notification,
+              });
+              console.log("error", err.reason);
+              console.error("contract call failure", err);
+            }
+          }
+        } catch (e) {
+          toast.error(`Whoops something went wrong ${e}`, {
             id: notification,
           });
-          console.log("error", err.reason);
-          console.error("contract call failure", err);
+          console.log("🚀 ~ file: index.js:111 ~ depositToken ~ e:", e);
         }
       }
     } catch (e) {
+      toast.error(`Whoops something went wrong ${e}`, {
+        id: notification,
+      });
       console.log("🚀 ~ file: index.js:133 ~ cashOutToken ~ e:", e);
     }
   }
@@ -164,7 +180,7 @@ export default function Home() {
         betTokenBalance?.decimals
       );
       const data = await cashOutBetTokens({
-        args: [parsedAmount.toString()],
+        args: [cashOutAmount],
       });
       toast.success(
         `${cashOutAmount} ${betTokenBalance?.symbol} successfully exchanged for ${cashOutAmount} ${chanceBalance?.symbol}`,
@@ -224,7 +240,9 @@ export default function Home() {
         <>
           {address ? (
             <div className="bg-gray-900 px-6 rounded-lg flex flex-col mt-8 pb-8">
-              <div className="text-yellow-500 mt-6">Chance Balance</div>
+              <div className="text-yellow-500 mt-6">
+                Your {chanceBalance && chanceBalance?.symbol} Balance
+              </div>
               <div className="mt-1 flex">
                 <div>
                   {" "}
@@ -235,7 +253,9 @@ export default function Home() {
                   {chanceBalance && chanceBalance?.symbol}
                 </div>
               </div>
-              <div className="text-yellow-500 mt-2">BetToken Contract</div>
+              <div className="text-yellow-500 mt-2">
+                Your {betTokenBalance && betTokenBalance?.symbol} Contract
+              </div>
               <div className="mt-1 flex">
                 <div>
                   {" "}
@@ -253,10 +273,8 @@ export default function Home() {
                   className="outline-none rounded-md text-black px-2 py-1 w-64"
                   type="number"
                   disabled={
-                    Number(chanceBalance?.displayValue).toFixed(2) == "0.0" ||
-                    depositIsLoading ||
-                    exchangeBetBalance?.displayValue <=
-                      chanceBalance?.displayValue
+                    Number(chanceBalance?.displayValue).toFixed(2) == "0.00" ||
+                    depositIsLoading
                   }
                   min={1}
                   max={chanceBalance?.displayValue}
@@ -265,20 +283,26 @@ export default function Home() {
                 />
 
                 <button
-                  className="my-4 bg-yellow-500 py-1.5 w-fit px-6 rounded-2xl "
+                  className="my-4 bg-yellow-500 py-1.5 w-fit px-6 rounded-2xl disabled:opacity-50 "
                   disabled={
-                    Number(chanceBalance?.displayValue).toFixed(2) == "0.0" ||
+                    Number(chanceBalance?.displayValue).toFixed(2) == "0.00" ||
                     depositIsLoading ||
-                    exchangeBetBalance?.displayValue <=
-                      chanceBalance?.displayValue
+                    depositAmount > exchangeBetBalance?.displayValue ||
+                    Number(exchangeBetBalance?.displayValue).toFixed(2) ==
+                      "0.00"
                   }
                   onClick={depositToken}>
-                  {exchangeBetBalance?.displayValue <=
-                  chanceBalance?.displayValue ? (
-                    <>No {exchangeBetBalance?.symbol} to swap to</>
+                  {Number(exchangeBetBalance?.displayValue).toFixed(2) ==
+                    "0.00" ||
+                  Number(exchangeBetBalance?.displayValue).toFixed(2) <
+                    Number(depositAmount).toFixed(2) ? (
+                    <>
+                      Not enough {exchangeBetBalance?.symbol} to match your
+                      request
+                    </>
                   ) : (
                     <>
-                      {chanceBalance?.displayValue == "0.0"
+                      {chanceBalance?.displayValue == "0.00"
                         ? `You don't have ${chanceBalance?.symbol} to Swap`
                         : `Swap ${chanceBalance?.symbol} to ${betTokenBalance?.symbol}`}
                     </>
@@ -296,10 +320,7 @@ export default function Home() {
                   type="number"
                   disabled={
                     Number(betTokenBalance?.displayValue).toFixed(2) ==
-                      "0.00" ||
-                    cashOutIsLoading ||
-                    betTokenBalance?.displayValue <
-                      exchangeChanceBalance?.displayValue
+                      "0.00" || cashOutIsLoading
                   }
                   min={1}
                   max={betTokenBalance?.displayValue}
@@ -313,29 +334,33 @@ export default function Home() {
                     Number(betTokenBalance?.displayValue).toFixed(2) ==
                       "0.00" ||
                     cashOutIsLoading ||
-                    betTokenBalance?.displayValue <
-                      exchangeChanceBalance?.displayValue ||
-                    exchangeChanceBalance?.displayValue <
-                      betTokenBalance?.displayValue
+                    cashOutAmount > exchangeChanceBalance?.displayValue ||
+                    Number(exchangeChanceBalance?.displayValue).toFixed(2) ==
+                      "0.00"
                   }
                   onClick={cashOutToken}>
-                  {betTokenBalance?.displayValue <
-                  exchangeChanceBalance?.displayValue ? (
+                  {Number(exchangeChanceBalance?.displayValue).toFixed(2) ==
+                    "0.00" ||
+                  Number(exchangeChanceBalance?.displayValue).toFixed(2) <
+                    Number(depositAmount).toFixed(2) ? (
                     <>
                       Not enough {exchangeChanceBalance?.symbol} to match your
                       request
                     </>
                   ) : (
                     <>
-                      {betTokenBalance?.displayValue == "0.0"
-                        ? `you don't have ${betTokenBalance?.symbol} to swap`
-                        : `swap ${betTokenBalance?.symbol} to ${chanceBalance?.symbol}`}
+                      {betTokenBalance?.displayValue == "0.00"
+                        ? `You don't have ${betTokenBalance?.symbol} to swap`
+                        : `Swap ${betTokenBalance?.symbol} to ${chanceBalance?.symbol}`}
                     </>
                   )}
                 </button>
               </div>
 
-              <div className="text-yellow-500">Exchange CHANCE Balance</div>
+              <div className="text-yellow-500">
+                Exchange{" "}
+                {exchangeChanceBalance && exchangeChanceBalance?.symbol} Balance
+              </div>
               <div className="flex mt-1 ">
                 <div>
                   {exchangeChanceBalance &&
@@ -346,7 +371,8 @@ export default function Home() {
                 </div>
               </div>
               <div className="text-yellow-500 mt-2">
-                Exchange BetToken Balance
+                Exchange {exchangeBetBalance && exchangeBetBalance?.symbol}{" "}
+                Balance
               </div>
               <div className="flex mt-1">
                 <div>
