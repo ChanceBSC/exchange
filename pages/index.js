@@ -312,7 +312,7 @@ export default function Home() {
               {/* withdraw chance by depositing betToken */}
               <div className="flex flex-col items-start">
                 <div className=" text-yellow-500">
-                  Swapping from {betTokenBalance?.symbol} to {chanceBalance?.symbolx}
+                  Swapping from {betTokenBalance?.symbol} to {chanceBalance?.symbol}
                 </div>
                 <input
                   className="outline-none rounded-md text-black px-2 py-1 w-64 mt-2"
@@ -356,7 +356,7 @@ export default function Home() {
                 </button>
               </div>
 
-              {/* <div className="text-yellow-500">
+              <div className="text-yellow-500">
                 Exchange{" "}
                 {exchangeChanceBalance && exchangeChanceBalance?.symbol} Balance
               </div>
@@ -383,7 +383,7 @@ export default function Home() {
                   {" "}
                   {exchangeBetBalance && exchangeBetBalance?.symbol}
                 </div>
-              </div> */}
+              </div>
             </div>
           ) : (
             <>Please Connect Your Wallet</>
